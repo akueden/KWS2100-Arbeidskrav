@@ -5,6 +5,7 @@ import { OSM } from "ol/source";
 import { useGeographic } from "ol/proj";
 import { Layer } from "ol/layer";
 import { TilfluktsromLayerCheckbox } from "../layers/tilfluktsromLayerCheckbox";
+import { SivilforsvarsdistrikterLayerCheckbox } from "../layers/sivilforsvarsdistrikterLayerCheckbox"; // ✅ Ny import
 
 import "ol/ol.css";
 
@@ -34,6 +35,11 @@ export function Application() {
     <>
       <nav>
         <TilfluktsromLayerCheckbox setLayers={setLayers} map={map} />
+        <SivilforsvarsdistrikterLayerCheckbox
+          setLayers={setLayers}
+          map={map}
+        />{" "}
+        {/* ✅ Nytt lag lagt til */}
       </nav>
       <main>
         <div ref={mapRef} style={{ width: "100%", height: "100vh" }}></div>
