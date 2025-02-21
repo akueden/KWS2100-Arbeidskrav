@@ -8,6 +8,7 @@ import { TilfluktsromLayerCheckbox } from "../layers/tilfluktsromLayerCheckbox";
 import { SivilforsvarsdistrikterLayerCheckbox } from "../layers/sivilforsvarsdistrikterLayerCheckbox"; // ✅ Ny import
 
 import "ol/ol.css";
+import "./application.css";
 
 useGeographic();
 
