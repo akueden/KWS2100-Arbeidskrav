@@ -1,61 +1,99 @@
 import VectorLayer from "ol/layer/Vector";
 import VectorSource from "ol/source/Vector";
 import { GeoJSON } from "ol/format";
+import React, {
+  Dispatch,
+  SetStateAction,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { Layer } from "ol/layer";
-import React, { useEffect, useRef, useState } from "react";
-import { Map, MapBrowserEvent, Overlay } from "ol";
-import { FeatureLike } from "ol/Feature";
+import { CheckboxButton } from "../widgets/checkboxButton";
+import { Feature, Map, MapBrowserEvent, Overlay } from "ol";
 
-const source = new VectorSource({
+type TypedFeature<T> = { getProperties(): T } & Feature;
+
+interface SivilforsvarsdistriktProperties {
+  distriktnummer: number;
+  distriktnavn: string;
+  id: string;
+  name: string;
+}
+
+const source = new VectorSource<TypedFeature<SivilforsvarsdistriktProperties>>({
   url: "/KWS2100-Arbeidskrav/geojson/sivilforsvarsdistrikter.geojson",
   format: new GeoJSON(),
 });
 const sivilforsvarsdistrikterLayer = new VectorLayer({ source });
 const overlay = new Overlay({
+  autoPan: true,
   positioning: "bottom-center",
 });
+
+function SivilforsvarsdistriktOverlay({
+  features,
+}: {
+  features: SivilforsvarsdistriktProperties[];
+}) {
+  if (features.length > 0) {
+    return (
+      <div>
+        <h3>{features[0].distriktnavn}</h3>
+        <p>
+          <strong>Navn:</strong> {features[0].distriktnavn}
+        </p>
+      </div>
+    );
+  }
+  return <div></div>;
+}
 
 export function SivilforsvarsdistrikterLayerCheckbox({
   setLayers,
   map,
 }: {
-  setLayers: (value: (prevState: Layer[]) => Layer[]) => void;
+  setLayers: Dispatch<SetStateAction<Layer[]>>;
   map: Map;
 }) {
-  const [checked, setChecked] = useState(true);
-  const overlayRef = useRef<HTMLDivElement | null>(null);
-  const [selectedSivilforsvarsdistrikter, setSelectedSivilforsvarsdistrikter] =
-    useState<FeatureLike[]>([]);
-
   function handleClick(e: MapBrowserEvent<MouseEvent>) {
-    setSelectedSivilforsvarsdistrikter(map.getFeaturesAtPixel(e.pixel));
-    overlay.setPosition(e.coordinate);
+    const distrikter = source
+      .getFeaturesAtCoordinate(e.coordinate)
+      .map((f) => f.getProperties());
+    if (distrikter.length > 0) {
+      overlay.setPosition(e.coordinate);
+    } else {
+      overlay.setPosition(undefined);
+    }
+    setSelectedFeatures(distrikter);
   }
 
-  useEffect(() => {
-    overlay.setElement(overlayRef.current!);
-    map.addOverlay(overlay);
-  }, []);
+  const [selectedFeatures, setSelectedFeatures] = useState<
+    SivilforsvarsdistriktProperties[]
+  >([]);
+  const [checked, setChecked] = useState(false);
+  const overlayRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => overlay.setElement(overlayRef.current || undefined), []);
 
   useEffect(() => {
     if (checked) {
       setLayers((old) => [...old, sivilforsvarsdistrikterLayer]);
       map.on("click", handleClick);
-    } else {
-      setLayers((old) => old.filter((l) => l !== sivilforsvarsdistrikterLayer));
+      map.addOverlay(overlay);
     }
+    return () => {
+      overlay.setPosition(undefined);
+      map.removeOverlay(overlay);
+      map.un("click", handleClick);
+      setLayers((old) => old.filter((l) => l !== sivilforsvarsdistrikterLayer));
+    };
   }, [checked]);
-
   return (
-    <button onClick={() => setChecked((b) => !b)}>
-      <input type={"checkbox"} checked={checked} />
-      Vis sivilforsvarsdistrikter på kartet
-      <div ref={overlayRef}>
-        Klikkede sivilforsvarsdistrikter:{" "}
-        {selectedSivilforsvarsdistrikter
-          .map((s) => s.getProperties().navn)
-          .join(", ")}
+    <CheckboxButton checked={checked} onClick={() => setChecked((s) => !s)}>
+      Vis sivilforsvarsdistriker på kart
+      <div ref={overlayRef} className={"overlay"}>
+        <SivilforsvarsdistriktOverlay features={selectedFeatures} />
       </div>
-    </button>
+    </CheckboxButton>
   );
 }

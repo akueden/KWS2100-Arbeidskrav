@@ -40,7 +40,6 @@ export function Application() {
           setLayers={setLayers}
           map={map}
         />{" "}
-        {/* ✅ Nytt lag lagt til */}
       </nav>
       <main>
         <div ref={mapRef} style={{ width: "100%", height: "100vh" }}></div>
