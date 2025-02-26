@@ -32,3 +32,15 @@ nav {
   border-top-color: white;
   bottom: 0;
 }
+
+.overlay.red {
+  background-color: red;
+}
+
+.overlay.green {
+  background-color: green;
+}
+
+.overlay.orange {
+  background-color: orange;
+}
