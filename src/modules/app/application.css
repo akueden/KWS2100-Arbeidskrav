@@ -47,3 +47,7 @@ nav {
   background-color: orange;
   border: solid black;
 }
+
+.map:hover {
+  cursor: pointer;
+}
